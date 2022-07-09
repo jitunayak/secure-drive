@@ -11,21 +11,13 @@ import { CONFIG } from './config'
 
 let credentials: any
 
-async function loadCognitoCredentials() {
-    credentials = await CognitoCredentials()
-    console.log('Cognito Credentials:', credentials?.identityId)
-    return credentials
-}
+async function getListOfObjects(token: string) {
+    const s3Client = new S3Client({
+        region: CONFIG.S3_REGION,
+        credentials: credentials,
+    })
 
-loadCognitoCredentials()
-
-const s3Client = new S3Client({
-    region: CONFIG.S3_REGION,
-    credentials: credentials,
-})
-
-async function getListOfObjects() {
-    credentials = await CognitoCredentials()
+    credentials = await CognitoCredentials(token)
 
     const ListOfObjects = await s3Client.send(
         new ListObjectsCommand({
@@ -36,7 +28,12 @@ async function getListOfObjects() {
     return ListOfObjects
 }
 
-async function getSignedUrlForObject(objectKey: string): Promise<string> {
+async function getSignedUrlForObject(
+    token: string,
+    objectKey: string
+): Promise<string> {
+    credentials = await CognitoCredentials(token)
+
     const s3Client = new S3Client({
         region: CONFIG.S3_REGION,
         credentials,
@@ -51,12 +48,14 @@ async function getSignedUrlForObject(objectKey: string): Promise<string> {
     return url
 }
 
-getListOfObjects().then((data) => {
-    console.log('List of objects:', data?.Contents)
-})
+// getListOfObjects(token).then((data) => {
+//     console.log('List of objects:', data?.Contents)
+// })
 
-getSignedUrlForObject(
-    'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189/81a8MfMJimL._SX466_.jpg'
-).then((url) => {
-    console.log('Signed URL:', url)
-})
+// getSignedUrlForObject(
+//     'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189/81a8MfMJimL._SX466_.jpg'
+// ).then((url) => {
+//     console.log('Signed URL:', url)
+// })
+
+export { getSignedUrlForObject, getListOfObjects }
