@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ListObjectsCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+    GetObjectCommand,
+    ListObjectsCommand,
+    S3Client,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { GetObjectCommand } from '../node_modules/@aws-sdk/client-s3/dist-types/commands/GetObjectCommand'
+
 import { CognitoCredentials } from './cognito-client'
 import { CONFIG } from './config'
 
@@ -9,7 +13,7 @@ let credentials: any
 
 async function loadCognitoCredentials() {
     credentials = await CognitoCredentials()
-    console.log('Cognito Credentials:', credentials)
+    console.log('Cognito Credentials:', credentials?.identityId)
     return credentials
 }
 
@@ -48,5 +52,11 @@ async function getSignedUrlForObject(objectKey: string): Promise<string> {
 }
 
 getListOfObjects().then((data) => {
-    console.log('List of objects:', data)
+    console.log('List of objects:', data?.Contents)
+})
+
+getSignedUrlForObject(
+    'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189/81a8MfMJimL._SX466_.jpg'
+).then((url) => {
+    console.log('Signed URL:', url)
 })
