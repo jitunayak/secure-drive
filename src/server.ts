@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONFIG } from './config'
 import Express, { Request, Response } from 'express'
-import { getListOfObjects, getSignedUrlForObject } from './s3-client'
+
 import { authorize, getBearerToken } from './authentication'
 import Redis from 'ioredis'
+import { S3ClientManager } from './s3-client'
+import { BuildFileDetail } from './builder'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -20,61 +23,104 @@ app.get('/', (req, res) => {
         res.send('Secure Drive Server is running')
 })
 
-app.get('/files', authorize, (req: Request, res: Response) => {
-        const token = getBearerToken(req) as string
-        getListOfObjects(token)
-                .then((data) => {
-                        res.send(data?.Contents?.map((item) => item.Key))
+app.get('/files', authorize, async (req: Request, res: Response) => {
+        try {
+                const s3ClientManager = new S3ClientManager()
+                await s3ClientManager.build(getBearerToken(req))
+
+                const listOfObjects = await s3ClientManager.getListOfObjects()
+                const files = listOfObjects.Contents.map(
+                        async (object: any) => {
+                                const isFolder = object.Key.endsWith('/')
+                                return BuildFileDetail(
+                                        s3ClientManager,
+                                        object,
+                                        isFolder
+                                )
+                        }
+                )
+
+                Promise.all(files).then((files) => {
+                        res.status(200).send(files)
                 })
-                .catch((err) => {
-                        res.status(500).send(err)
-                })
+        } catch (e: any) {
+                res.status(500).send(e?.message)
+        }
 })
+
+app.post(
+        '/folder/passcheck',
+        authorize,
+        async (req: Request, res: Response) => {
+                try {
+                        const { passcode, folderName } = req.body
+                        const dbPassword = await redis.get(
+                                folderName + '-vault'
+                        )
+                        if (passcode === dbPassword) {
+                                return res.status(201).send('Granted')
+                        }
+                        return res.status(401).send('Unauthorized')
+                } catch (e: any) {
+                        return res.status(500).send(e?.message)
+                }
+        }
+)
 
 app.post('/folder', authorize, async (req: Request, res: Response) => {
-        const { passcode, folderName } = req.body
-        const dbPassword = await redis.get(folderName)
-        console.log('dbPassword', dbPassword)
-        if (passcode === dbPassword) {
-                return res.send(201).send('Granted')
-        }
-        res.status(401).send('Unauthorized')
-})
+        try {
+                const s3ClientManager = new S3ClientManager()
+                s3ClientManager.build(getBearerToken(req))
 
-app.post('/secure/folder', authorize, async (req: Request, res: Response) => {
-        const { passcode, folderName } = req.body
-        const dbFolderName = folderName.concate('-vault')
-        const dbPassword = await redis.set(dbFolderName, passcode)
-        if (dbPassword === 'OK') {
-                return res.send(201).send('Secure Folder Created')
+                const { passcode, folderName } = req.body
+                const dbFolderName = folderName + '-vault'
+                const dbPassword = await redis.set(dbFolderName, passcode)
+                if (dbPassword === 'OK') {
+                        s3ClientManager.createFolder(dbFolderName)
+                        return res.status(201).send('Secure Folder Created')
+                }
+                return res.status(500).send('Failed to create secure folder')
+        } catch (e: any) {
+                return res.status(500).send(e?.message)
         }
-        res.status(500).send('Failed to create secure folder')
 })
 app.post('/files', authorize, async (req, res) => {
-        const token = getBearerToken(req) as string
-        const fileName = req.body?.fileName as string
-        const passcode = req.body.passcode as string
-        if (!fileName) return res.status(400).send('File name is missing')
-        const folder = fileName
-                .split('/')
-                .reduce((acc, curr, index): string => {
-                        if (index === fileName.split('/').length - 1) {
-                                return acc
-                        }
-                        return `${acc}/${curr}`
-                })
-        if (!folder.endsWith('vault')) {
-                const url = await getSignedUrlForObject(token, fileName)
-                return res.status(200).send(url)
-        }
-        if (!passcode) return res.status(400).send('Passcode is missing')
+        try {
+                const s3ClientManager = new S3ClientManager()
+                s3ClientManager.build(getBearerToken(req))
 
-        const dbPassword = await redis.get(folder)
-        if (passcode === dbPassword) {
-                const url = await getSignedUrlForObject(token, fileName)
-                return res.status(200).send(url)
-        } else {
-                return res.status(403).send('You cannot read from this folder')
+                const fileName = req.body?.fileName as string
+                const passcode = req.body.passcode as string
+                if (!fileName)
+                        return res.status(400).send('File name is missing')
+                const folder = fileName
+                        .split('/')
+                        .reduce((acc, curr, index): string => {
+                                if (index === fileName.split('/').length - 1) {
+                                        return acc
+                                }
+                                return `${acc}/${curr}`
+                        })
+                if (!folder.endsWith('vault')) {
+                        const url =
+                                s3ClientManager.getSignedUrlForObject(fileName)
+                        return res.status(200).send(url)
+                }
+                if (!passcode)
+                        return res.status(400).send('Passcode is missing')
+
+                const dbPassword = await redis.get(folder)
+                if (passcode === dbPassword) {
+                        const url =
+                                s3ClientManager.getSignedUrlForObject(fileName)
+                        return res.status(200).send(url)
+                } else {
+                        return res
+                                .status(403)
+                                .send('You cannot read from this folder')
+                }
+        } catch (e: any) {
+                return res.status(500).send(e?.message)
         }
 })
 

@@ -15,7 +15,7 @@ export function authorize(req: Request, res: Response, next: NextFunction) {
 export function getBearerToken(req: Request) {
         const bearerToken = req.headers['authorization']
         if (!bearerToken) {
-                return null
+                throw new Error('Auth Header is missing')
         }
         return bearerToken?.split(' ')[1] as string
 }
