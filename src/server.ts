@@ -6,6 +6,7 @@ import { authorize, getBearerToken } from './Helper/authentication'
 import Redis from 'ioredis'
 import { S3ClientManager } from './Client/s3-client'
 import { BuildFileDetail } from './Builder/builder'
+import { getFolderName } from './Helper/Helper'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -31,12 +32,7 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                 const listOfObjects = await s3ClientManager.getListOfObjects()
                 const files = listOfObjects.Contents.map(
                         async (object: any) => {
-                                const isFolder = object.Key.endsWith('/')
-                                return BuildFileDetail(
-                                        s3ClientManager,
-                                        object,
-                                        isFolder
-                                )
+                                return BuildFileDetail(s3ClientManager, object)
                         }
                 )
 
@@ -93,14 +89,8 @@ app.post('/files', authorize, async (req, res) => {
                 const passcode = req.body.passcode as string
                 if (!fileName)
                         return res.status(400).send('File name is missing')
-                const folder = fileName
-                        .split('/')
-                        .reduce((acc, curr, index): string => {
-                                if (index === fileName.split('/').length - 1) {
-                                        return acc
-                                }
-                                return `${acc}/${curr}`
-                        })
+                const folder = getFolderName(fileName)
+
                 if (!folder.endsWith('vault')) {
                         const url =
                                 s3ClientManager.getSignedUrlForObject(fileName)
