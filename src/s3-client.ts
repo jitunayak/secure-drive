@@ -3,6 +3,7 @@ import {
         GetObjectCommand,
         ListObjectsCommand,
         S3Client,
+        PutObjectCommand,
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
@@ -48,14 +49,20 @@ async function getSignedUrlForObject(
         return url
 }
 
-// getListOfObjects(token).then((data) => {
-//     console.log('List of objects:', data?.Contents)
-// })
+async function createFolder(token: string, folderName: string) {
+        credentials = await CognitoCredentials(token)
 
-// getSignedUrlForObject(
-//     'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189/81a8MfMJimL._SX466_.jpg'
-// ).then((url) => {
-//     console.log('Signed URL:', url)
-// })
+        const s3Client = new S3Client({
+                region: CONFIG.S3_REGION,
+                credentials,
+        })
+
+        await s3Client.send(
+                new PutObjectCommand({
+                        Bucket: CONFIG.BUCKET_NAME,
+                        Key: folderName + '/',
+                })
+        )
+}
 
 export { getSignedUrlForObject, getListOfObjects }
