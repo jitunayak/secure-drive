@@ -8,7 +8,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 import { CognitoCredentials } from './cognito-client'
-import { CONFIG } from './config'
+import { CONFIG } from '../config'
 
 export class S3ClientManager {
         private client: any

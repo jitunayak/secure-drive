@@ -2,10 +2,10 @@
 import { CONFIG } from './config'
 import Express, { Request, Response } from 'express'
 
-import { authorize, getBearerToken } from './authentication'
+import { authorize, getBearerToken } from './Helper/authentication'
 import Redis from 'ioredis'
-import { S3ClientManager } from './s3-client'
-import { BuildFileDetail } from './builder'
+import { S3ClientManager } from './Client/s3-client'
+import { BuildFileDetail } from './Builder/builder'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT

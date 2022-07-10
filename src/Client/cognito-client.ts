@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { fromCognitoIdentityPool as FromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity'
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity'
-import { CONFIG } from './config'
+import { CONFIG } from '../config'
 
 const identityPoolId = CONFIG.COGNITO_IDENTITY_POOL_ID
 const identityProvider = CONFIG.COGNITO_IDENTITY_PROVIDER
