@@ -50,6 +50,9 @@ app.post(
         async (req: Request, res: Response) => {
                 try {
                         const { passcode, folderName } = req.body
+                        if (!passcode || !folderName)
+                                return res.status(400).send('Invalid Request')
+
                         const dbPassword = await redis.get(
                                 folderName + '-vault'
                         )
@@ -74,7 +77,12 @@ app.post('/folder', authorize, async (req: Request, res: Response) => {
 
                 if (dbPassword === 'OK') {
                         await s3ClientManager.createFolder(dbFolderName)
-                        return res.status(201).send('Secure Folder Created')
+                        return res
+                                .status(201)
+                                .send(
+                                        folderName.split('/')[1] +
+                                                ' Secure Folder Created'
+                                )
                 }
                 return res.status(500).send('Failed to create secure folder')
         } catch (e: any) {
@@ -89,6 +97,7 @@ app.post('/files', authorize, async (req, res) => {
 
                 const fileName = req.body?.fileName as string
                 const passcode = req.body.passcode as string
+
                 if (!fileName)
                         return res.status(400).send('File name is missing')
                 const folder = getFolderName(fileName)
