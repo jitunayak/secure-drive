@@ -52,11 +52,11 @@ export class S3ClientManager {
         }
 
         public async createFolder(folderName: string) {
-                await this.client.send(
-                        new PutObjectCommand({
-                                Bucket: CONFIG.BUCKET_NAME,
-                                Key: folderName + '/',
-                        })
-                )
+                const command = new PutObjectCommand({
+                        Bucket: CONFIG.BUCKET_NAME,
+                        Key: folderName + '/',
+                })
+
+                await this.client.send(command)
         }
 }

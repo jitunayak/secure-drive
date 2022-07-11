@@ -54,7 +54,7 @@ app.post(
                                 folderName + '-vault'
                         )
                         if (passcode === dbPassword) {
-                                return res.status(201).send('Granted')
+                                return res.status(200).send('Granted')
                         }
                         return res.status(401).send('Unauthorized')
                 } catch (e: any) {
@@ -66,24 +66,26 @@ app.post(
 app.post('/folder', authorize, async (req: Request, res: Response) => {
         try {
                 const s3ClientManager = new S3ClientManager()
-                s3ClientManager.build(getBearerToken(req))
+                await s3ClientManager.build(getBearerToken(req))
 
                 const { passcode, folderName } = req.body
                 const dbFolderName = folderName + '-vault'
                 const dbPassword = await redis.set(dbFolderName, passcode)
+
                 if (dbPassword === 'OK') {
-                        s3ClientManager.createFolder(dbFolderName)
+                        await s3ClientManager.createFolder(dbFolderName)
                         return res.status(201).send('Secure Folder Created')
                 }
                 return res.status(500).send('Failed to create secure folder')
         } catch (e: any) {
+                console.log(e)
                 return res.status(500).send(e?.message)
         }
 })
 app.post('/files', authorize, async (req, res) => {
         try {
                 const s3ClientManager = new S3ClientManager()
-                s3ClientManager.build(getBearerToken(req))
+                await s3ClientManager.build(getBearerToken(req))
 
                 const fileName = req.body?.fileName as string
                 const passcode = req.body.passcode as string

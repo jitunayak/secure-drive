@@ -2,8 +2,8 @@ import { getFolderName } from '../Helper/Helper'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const BuildFileDetail = async (s3ClientManager: any, object: any) => {
-        const fileName = object.Key as string
-        const folder = getFolderName(fileName)
+        const filePath = object.Key as string
+        const folder = getFolderName(filePath)
         const isVault = folder.endsWith('vault')
         const isFolder = object.Key.endsWith('/')
         const shouldCreateSignedURL = !isFolder && !isVault
@@ -20,6 +20,6 @@ export const BuildFileDetail = async (s3ClientManager: any, object: any) => {
                         : null,
                 type: isFolder ? 'folder' : 'file',
                 isVault,
-                FullPath: object.Key,
+                FullPath: filePath,
         }
 }
