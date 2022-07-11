@@ -39,7 +39,7 @@ export class S3ClientManager {
                 return ListOfObjects
         }
 
-        public async getSignedUrlForObject(objectKey: string): Promise<string> {
+        public async getSignedUrlForObject(objectKey: string) {
                 const command = new GetObjectCommand({
                         Bucket: CONFIG.BUCKET_NAME,
                         Key: objectKey,

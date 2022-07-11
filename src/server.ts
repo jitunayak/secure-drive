@@ -103,8 +103,9 @@ app.post('/files', authorize, async (req, res) => {
                 const folder = getFolderName(fileName)
 
                 if (!folder.endsWith('vault')) {
-                        const url =
-                                s3ClientManager.getSignedUrlForObject(fileName)
+                        const url = await s3ClientManager.getSignedUrlForObject(
+                                fileName
+                        )
                         return res.status(200).send(url)
                 }
                 if (!passcode)
@@ -112,8 +113,9 @@ app.post('/files', authorize, async (req, res) => {
 
                 const dbPassword = await redis.get(folder)
                 if (passcode === dbPassword) {
-                        const url =
-                                s3ClientManager.getSignedUrlForObject(fileName)
+                        const url = await s3ClientManager.getSignedUrlForObject(
+                                fileName
+                        )
                         return res.status(200).send(url)
                 } else {
                         return res
