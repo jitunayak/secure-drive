@@ -10,4 +10,5 @@ const uploadFile = multer({
         limits: { fileSize: maxSize },
 }).single('file')
 
-export const uploadFileMiddleware = util.promisify(uploadFile)
+const uploadFileMiddleware = util.promisify(uploadFile)
+export { uploadFileMiddleware }
