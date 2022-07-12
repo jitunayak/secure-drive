@@ -7,6 +7,7 @@ import Redis from 'ioredis'
 import { S3ClientManager } from './Client/s3-client'
 import { BuildFileDetail } from './Builder/builder'
 import { getFolderName } from './Helper/Helper'
+import { uploadFileMiddleware } from './Helper/uploadMiddlerware'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -29,7 +30,8 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
 
-                const listOfObjects = await s3ClientManager.getListOfObjects()
+                const listOfObjects =
+                        (await s3ClientManager.getListOfObjects()) as any
                 const files = listOfObjects.Contents.map(
                         async (object: any) => {
                                 return BuildFileDetail(s3ClientManager, object)
@@ -90,7 +92,7 @@ app.post('/folder', authorize, async (req: Request, res: Response) => {
                 return res.status(500).send(e?.message)
         }
 })
-app.post('/files', authorize, async (req, res) => {
+app.get('/files/signedurl', authorize, async (req, res) => {
         try {
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
@@ -127,6 +129,50 @@ app.post('/files', authorize, async (req, res) => {
         }
 })
 
+app.post('/files/', authorize, uploadFileMiddleware, async (req, res) => {
+        try {
+                if (req.file == undefined) {
+                        return res
+                                .status(400)
+                                .send({ message: 'Please upload a file!' })
+                }
+                const s3ClientManager = new S3ClientManager()
+                await s3ClientManager.build(getBearerToken(req))
+                const remoteLocation = req.headers.remotelocation as string
+                await s3ClientManager.uploadFile(
+                        req.file.buffer,
+                        req.file.originalname,
+                        remoteLocation
+                )
+                res.status(200).send({
+                        message:
+                                'Uploaded the file successfully: ' +
+                                req.file.originalname,
+                })
+        } catch (err: any) {
+                console.log(err)
+                if (err.code == 'LIMIT_FILE_SIZE') {
+                        return res.status(500).send({
+                                message: 'File size cannot be larger than 2MB!',
+                        })
+                }
+                res.status(500).send({
+                        message: `Could not upload the file: ${req?.file?.originalname}. ${err}`,
+                })
+        }
+        // try {
+        // const s3ClientManager = new S3ClientManager()
+        // await s3ClientManager.build(getBearerToken(req))
+        // const file = req.file as any
+        // console.log({ file })
+        // s3ClientManager.uploadFile(
+        //         file,
+        //         'fil1.pdf',
+        //         'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189'
+        // )
+
+        // return res.status(200).send(req?.files ?? 'No file name')
+})
 app.listen(PORT, () => {
         console.log(`Server started on ${PORT}`)
 })

@@ -5,18 +5,19 @@ import {
         PutObjectCommand,
         S3Client,
 } from '@aws-sdk/client-s3'
+import { CognitoIdentityCredentials } from '@aws-sdk/credential-provider-cognito-identity'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
-import { CognitoCredentials } from './cognito-client'
 import { CONFIG } from '../config'
+import { CognitoCredentials } from './cognito-client'
 
 export class S3ClientManager {
-        private client: any
-        private credentials: any
+        private client: S3Client
+        private credentials: CognitoIdentityCredentials
 
         constructor() {
-                this.client = null
-                this.credentials = null
+                this.client = {} as S3Client
+                this.credentials = {} as CognitoIdentityCredentials
         }
 
         public async build(token: string) {
@@ -28,7 +29,9 @@ export class S3ClientManager {
                         })
                 })
         }
-
+        public async getClient() {
+                return this.client
+        }
         public async getListOfObjects() {
                 const ListOfObjects = await this.client.send(
                         new ListObjectsCommand({
@@ -55,6 +58,22 @@ export class S3ClientManager {
                 const command = new PutObjectCommand({
                         Bucket: CONFIG.BUCKET_NAME,
                         Key: folderName + '/',
+                })
+
+                await this.client.send(command)
+        }
+
+        public async uploadFile(
+                file: any,
+                filename: string,
+                folderName: string
+        ) {
+                const command = new PutObjectCommand({
+                        Bucket: CONFIG.BUCKET_NAME,
+                        Key:
+                                //'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189' +
+                                folderName + '/' + filename,
+                        Body: file,
                 })
 
                 await this.client.send(command)
