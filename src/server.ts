@@ -8,6 +8,7 @@ import { S3ClientManager } from './Client/s3-client'
 import { BuildFileDetail } from './Builder/builder'
 import { getFolderName } from './Helper/Helper'
 import { uploadFileMiddleware } from './Helper/uploadMiddlerware'
+import helmet from 'helmet'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -20,6 +21,7 @@ const redis = new Redis({
 
 const app = Express()
 app.use(Express.json())
+app.use(helmet())
 
 app.get('/', (req, res) => {
         res.send('Secure Drive Server is running')
