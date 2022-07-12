@@ -131,7 +131,7 @@ app.get('/files/signedurl', authorize, async (req, res) => {
 
 app.post('/files/', authorize, uploadFileMiddleware, async (req, res) => {
         try {
-                if (req.file == undefined) {
+                if (req?.file == undefined) {
                         return res
                                 .status(400)
                                 .send({ message: 'Please upload a file!' })
@@ -160,18 +160,18 @@ app.post('/files/', authorize, uploadFileMiddleware, async (req, res) => {
                         message: `Could not upload the file: ${req?.file?.originalname}. ${err}`,
                 })
         }
-        // try {
-        // const s3ClientManager = new S3ClientManager()
-        // await s3ClientManager.build(getBearerToken(req))
-        // const file = req.file as any
-        // console.log({ file })
-        // s3ClientManager.uploadFile(
-        //         file,
-        //         'fil1.pdf',
-        //         'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189'
-        // )
+})
 
-        // return res.status(200).send(req?.files ?? 'No file name')
+app.delete('/files/', authorize, async (req, res) => {
+        try {
+                const s3ClientManager = new S3ClientManager()
+                await s3ClientManager.build(getBearerToken(req))
+                const filePath = req.body?.filePath as string
+                await s3ClientManager.deleteFile(filePath)
+                return res.status(200).send({ message: 'File deleted' })
+        } catch (e: any) {
+                return res.status(500).send(e?.message)
+        }
 })
 app.listen(PORT, () => {
         console.log(`Server started on ${PORT}`)

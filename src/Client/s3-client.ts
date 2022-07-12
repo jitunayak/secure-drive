@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+        DeleteObjectCommand,
         GetObjectCommand,
         ListObjectsCommand,
         PutObjectCommand,
@@ -74,6 +75,15 @@ export class S3ClientManager {
                                 //'ap-south-1:a933ef95-3753-4118-84c2-8f629a09b189' +
                                 folderName + '/' + filename,
                         Body: file,
+                })
+
+                await this.client.send(command)
+        }
+
+        public async deleteFile(fileName: string) {
+                const command = new DeleteObjectCommand({
+                        Bucket: CONFIG.BUCKET_NAME,
+                        Key: fileName,
                 })
 
                 await this.client.send(command)
