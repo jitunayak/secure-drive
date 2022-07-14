@@ -9,6 +9,7 @@ import { BuildFileDetail } from './Builder/builder'
 import { getFolderName } from './Helper/Helper'
 import { uploadFileMiddleware } from './Helper/uploadMiddlerware'
 import helmet from 'helmet'
+import cors from 'cors'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -22,7 +23,7 @@ const redis = new Redis({
 const app = Express()
 app.use(Express.json())
 app.use(helmet())
-
+app.use(cors())
 app.get('/', (req, res) => {
         res.send('Secure Drive Server is running')
 })
@@ -106,6 +107,7 @@ app.get('/files/signedurl', authorize, async (req, res) => {
                         return res.status(400).send('File name is missing')
                 const folder = getFolderName(fileName)
 
+                // * check if folder is not password protected
                 if (!folder.endsWith('vault')) {
                         const url = await s3ClientManager.getSignedUrlForObject(
                                 fileName

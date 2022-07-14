@@ -21,5 +21,8 @@ export const BuildFileDetail = async (s3ClientManager: any, object: any) => {
                 type: isFolder ? 'folder' : 'file',
                 isVault,
                 FullPath: filePath,
+                level: isFolder
+                        ? folder.split('/').length - 2
+                        : folder.split('/').length - 1,
         }
 }
