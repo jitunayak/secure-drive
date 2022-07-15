@@ -6,6 +6,10 @@
         "author": "Jitu Nayak",
         "license": "MIT",
         "private": false,
+        "repository": {
+                "git": "https://github.com/jitu-nayak/secure-drive",
+                "dev": "https://secure-drive-dev.herokuapp.com"
+        },
         "scripts": {
                 "start": "NODE_ENV=prod node build/server.js",
                 "dev": "NODE_ENV=dev nodemon src/server.ts",
