@@ -30,8 +30,9 @@ app.get('/', (req, res) => {
 app.get('/basepath', async (req, res) => {
         const s3ClientManager = new S3ClientManager()
         await s3ClientManager.build(getBearerToken(req))
-        const basePath = s3ClientManager.getBasePath()
-        return res.send(basePath)
+        const basePath = await s3ClientManager.getBasePath()
+        console.log('basepath', basePath)
+        return res.status(200).send({ basePath })
 })
 app.get('/files', authorize, async (req: Request, res: Response) => {
         try {
