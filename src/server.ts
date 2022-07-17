@@ -80,7 +80,6 @@ app.post(
 app.post('/folder', authorize, async (req: Request, res: Response) => {
         try {
                 // console.log(req?.headers)
-                console.log(req)
 
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
