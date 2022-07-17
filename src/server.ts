@@ -27,7 +27,12 @@ app.use(cors())
 app.get('/', (req, res) => {
         res.send('Secure Drive Server is running')
 })
-
+app.get('/basepath', async (req, res) => {
+        const s3ClientManager = new S3ClientManager()
+        await s3ClientManager.build(getBearerToken(req))
+        const basePath = s3ClientManager.getBasePath()
+        return res.send(basePath)
+})
 app.get('/files', authorize, async (req: Request, res: Response) => {
         try {
                 const s3ClientManager = new S3ClientManager()
@@ -73,22 +78,28 @@ app.post(
 
 app.post('/folder', authorize, async (req: Request, res: Response) => {
         try {
+                // console.log(req?.headers)
+                console.log(req)
+
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
 
                 const { passcode, folderName } = req.body
-                const dbFolderName = folderName + '-vault'
-                const dbPassword = await redis.set(dbFolderName, passcode)
+                if (!folderName) return res.status(400).send('Invalid Request')
 
-                if (dbPassword === 'OK') {
-                        await s3ClientManager.createFolder(dbFolderName)
-                        return res
-                                .status(201)
-                                .send(
-                                        folderName.split('/')[1] +
-                                                ' Secure Folder Created'
-                                )
-                }
+                const dbFolderName =
+                        passcode !== undefined
+                                ? folderName + '-vault'
+                                : folderName
+                passcode && (await redis.set(dbFolderName, passcode))
+
+                console.log('Creating Folder:', folderName)
+
+                await s3ClientManager.createFolder(dbFolderName)
+                return res
+                        .status(201)
+                        .send(folderName.split('/')[1] + 'Folder is Created')
+
                 return res.status(500).send('Failed to create secure folder')
         } catch (e: any) {
                 console.log(e)

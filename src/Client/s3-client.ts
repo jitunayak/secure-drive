@@ -30,6 +30,9 @@ export class S3ClientManager {
                         })
                 })
         }
+        getBasePath() {
+                return this.credentials?.identityId
+        }
         public async getClient() {
                 return this.client
         }
