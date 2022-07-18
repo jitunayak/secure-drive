@@ -9,7 +9,7 @@ export const BuildFileDetail = async (s3ClientManager: any, object: any) => {
         const shouldCreateSignedURL = !isFolder && !isVault
         const name = !isFolder
                 ? object?.Key.split('/').pop()
-                : object?.Key.split('/')[1]
+                : object?.Key.split('/')[object.Key.split('/').length - 2]
 
         return {
                 name,
