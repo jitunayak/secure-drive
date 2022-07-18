@@ -1,7 +1,7 @@
 import multer from 'multer'
 import util from 'util'
 
-const maxSize = 10 * 1024 * 1024
+const maxSize = 200 * 1024 * 1024
 
 const storage = multer.memoryStorage()
 
