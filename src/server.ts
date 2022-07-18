@@ -28,11 +28,16 @@ app.get('/', (req, res) => {
         res.send('Secure Drive Server is running')
 })
 app.get('/basepath', async (req, res) => {
-        const s3ClientManager = new S3ClientManager()
-        await s3ClientManager.build(getBearerToken(req))
-        const basePath = await s3ClientManager.getBasePath()
-        console.log('basepath', basePath)
-        return res.status(200).send({ basePath })
+        try {
+                const s3ClientManager = new S3ClientManager()
+                await s3ClientManager.build(getBearerToken(req))
+                const basePath = await s3ClientManager.getBasePath()
+                console.log('basepath', basePath)
+                return res.status(200).send({ basePath })
+        } catch (err) {
+                console.log('basepath error', err)
+                return res.status(500).send({ error: err })
+        }
 })
 app.get('/files', authorize, async (req: Request, res: Response) => {
         try {
