@@ -20,13 +20,15 @@
         },
         "husky": {
                 "hooks": {
-                        "pre-commit": "lint-staged && yarn build && yarn format && git add -A ."
+                        "pre-commit": "lint-staged"
                 }
         },
         "lint-staged": {
                 "**/*.ts": [
                         "eslint --fix",
-                        "git add"
+                        "git add",
+                        "yarn build",
+                        "yarn format"
                 ]
         },
         "dependencies": {
