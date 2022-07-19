@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 
 export function authorize(req: Request, res: Response, next: NextFunction) {
-        const bearerToken = req.headers['authorization']
+        const bearerToken = req?.headers['authorization'] as string
         if (!bearerToken) {
                 return res.status(401).send('Auth Header is missing')
         }
@@ -13,7 +13,7 @@ export function authorize(req: Request, res: Response, next: NextFunction) {
 }
 
 export function getBearerToken(req: Request) {
-        const bearerToken = req.headers['authorization']
+        const bearerToken = req?.headers['authorization'] as string
         if (!bearerToken) {
                 throw new Error('Auth Header is missing')
         }

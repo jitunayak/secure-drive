@@ -45,15 +45,22 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                 await s3ClientManager.build(getBearerToken(req))
 
                 const listOfObjects = await s3ClientManager.getListOfObjects()
-                const files = listOfObjects?.Contents?.map(async (object) => {
-                        return await BuildFileDetail(s3ClientManager, object)
-                })
-
+                if (listOfObjects?.Contents?.length === 0) {
+                        return res.status(404).send({ files: [] })
+                }
+                const files = listOfObjects?.Contents?.map(
+                        async (object: any) => {
+                                return await BuildFileDetail(
+                                        s3ClientManager,
+                                        object
+                                )
+                        }
+                )
                 Promise.all(files as any).then((files) => {
-                        res.status(200).send(files)
+                        return res.status(200).send(files)
                 })
         } catch (e: any) {
-                res.status(500).send(e?.message)
+                return res.status(500).send(e?.message)
         }
 })
 
