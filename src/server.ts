@@ -45,7 +45,7 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                 await s3ClientManager.build(getBearerToken(req))
 
                 const listOfObjects = await s3ClientManager.getListOfObjects()
-                if (listOfObjects?.Contents?.length === 0) {
+                if (!listOfObjects?.Contents) {
                         return res.status(404).send({ files: [] })
                 }
                 const files = listOfObjects?.Contents?.map(
