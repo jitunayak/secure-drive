@@ -16,7 +16,7 @@ export const BuildFileDetail = async (
                 : object?.Key?.split('/')[object.Key.split('/').length - 2]
 
         return {
-                name2,
+                name,
                 url: shouldCreateSignedURL
                         ? await s3ClientManager.getSignedUrlForObject(
                                   object.Key
