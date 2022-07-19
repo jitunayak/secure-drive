@@ -44,13 +44,10 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
 
-                const listOfObjects =
-                        (await s3ClientManager.getListOfObjects()) as any
-                const files = listOfObjects.Contents.map(
-                        async (object: any) => {
-                                return BuildFileDetail(s3ClientManager, object)
-                        }
-                )
+                const listOfObjects = await s3ClientManager.getListOfObjects()
+                const files = listOfObjects?.Contents?.map((object) => {
+                        return BuildFileDetail(s3ClientManager, object)
+                })
 
                 Promise.all(files).then((files) => {
                         res.status(200).send(files)
@@ -84,6 +81,8 @@ app.post(
 
 app.post('/folder', authorize, async (req: Request, res: Response) => {
         try {
+                console.log('folder', req.body)
+
                 const s3ClientManager = new S3ClientManager()
                 await s3ClientManager.build(getBearerToken(req))
 
@@ -162,7 +161,7 @@ app.post('/files/', authorize, uploadFileMiddleware, async (req, res) => {
                         req.file.originalname,
                         remoteLocation
                 )
-                res.status(200).send({
+                return res.status(200).send({
                         message:
                                 'Uploaded the file successfully: ' +
                                 req.file.originalname,
@@ -174,7 +173,7 @@ app.post('/files/', authorize, uploadFileMiddleware, async (req, res) => {
                                 message: 'File size cannot be larger than 2MB!',
                         })
                 }
-                res.status(500).send({
+                return res.status(500).send({
                         message: `Could not upload the file: ${req?.file?.originalname}. ${err}`,
                 })
         }
