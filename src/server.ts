@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CONFIG } from './config'
 import Express, { Request, Response } from 'express'
+import { CONFIG } from './config'
 
-import { authorize, getBearerToken } from './Helper/authentication'
+import cors from 'cors'
+import helmet from 'helmet'
 import Redis from 'ioredis'
-import { S3ClientManager } from './Client/s3-client'
 import { BuildFileDetail } from './Builder/builder'
+import { S3ClientManager } from './Client/s3-client'
+import { authorize, getBearerToken } from './Helper/authentication'
 import { getFolderName } from './Helper/Helper'
 import { uploadFileMiddleware } from './Helper/uploadMiddlerware'
-import helmet from 'helmet'
-import cors from 'cors'
 
 console.log('Running Envrionemt:', CONFIG.ENV)
 const PORT = CONFIG.PORT
@@ -57,6 +57,7 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                         }
                 )
                 Promise.all(files as any).then((files) => {
+                        console.log(files)
                         return res.status(200).send(files)
                 })
         } catch (e: any) {
@@ -108,8 +109,6 @@ app.post('/folder', authorize, async (req: Request, res: Response) => {
                 return res
                         .status(201)
                         .send(folderName.split('/')[1] + 'Folder is Created')
-
-                return res.status(500).send('Failed to create secure folder')
         } catch (e: any) {
                 console.log(e)
                 return res.status(500).send(e?.message)

@@ -26,9 +26,11 @@ export const BuildFileDetail = async (
                 size: object?.Size,
                 lastModified: object?.LastModified,
                 isVault,
-                FullPath: filePath,
+                fullPath: filePath,
                 level: isFolder
-                        ? folder.split('/').length - 2
+                        ? folder.split('/').length >= 2
+                                ? folder.split('/').length - 2
+                                : folder.split('/').length
                         : folder.split('/').length - 1,
         }
 }
