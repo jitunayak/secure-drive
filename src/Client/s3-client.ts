@@ -51,7 +51,6 @@ export class S3ClientManager {
                         Bucket: CONFIG.BUCKET_NAME,
                         Key: objectKey,
                 })
-
                 const url = await getSignedUrl(this.client, command, {
                         expiresIn: 3600,
                 })

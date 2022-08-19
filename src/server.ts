@@ -57,7 +57,7 @@ app.get('/files', authorize, async (req: Request, res: Response) => {
                         }
                 )
                 Promise.all(files as any).then((files) => {
-                        console.log(files)
+                        // console.log(files)
                         return res.status(200).send(files)
                 })
         } catch (e: any) {
